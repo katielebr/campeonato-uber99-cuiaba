@@ -86,6 +86,9 @@ function navigateTo(view) {
     }
 
     updateHeader(view);
+
+    // Push to browser history so phone back button works
+    history.pushState({ view: view }, '', '');
 }
 
 function goBack() {
@@ -115,6 +118,25 @@ function goBack() {
         updateHeader(prev);
     }
 }
+
+// Handle phone back button
+window.addEventListener('popstate', function (e) {
+    // Close any open modals first
+    const activeModal = document.querySelector('.modal-overlay.active');
+    if (activeModal) {
+        resetZoom();
+        activeModal.classList.remove('active');
+        // Push state back so next back press navigates
+        history.pushState({ view: state.currentView }, '', '');
+        return;
+    }
+
+    // If on a sub-screen, go back
+    if (state.currentView === 'participant' || state.currentView === 'history') {
+        goBack();
+    }
+    // If on dashboard/setup, let the browser handle it (close app)
+});
 
 function updateHeader(view) {
     const title = document.getElementById('header-title');
