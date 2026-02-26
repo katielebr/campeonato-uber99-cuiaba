@@ -16,6 +16,7 @@ const EXTERNAL_ASSETS = [
 
 // Install: cache all static and external assets
 self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Take over immediately
     event.waitUntil(
         caches.open(CACHE_NAME).then(async (cache) => {
             // Cache static assets first

@@ -21,8 +21,25 @@
     <link rel="stylesheet" href="css/style.css?v=11">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        // Force clear all caches and reinstall SW
+        const APP_VERSION = '12';
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
+            window.addEventListener('load', async () => {
+                const lastVersion = localStorage.getItem('app-version');
+                if (lastVersion !== APP_VERSION) {
+                    // Clear ALL caches
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    // Unregister ALL service workers
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(r => r.unregister()));
+                    localStorage.setItem('app-version', APP_VERSION);
+                    // Reload to get fresh files
+                    if (lastVersion) {
+                        window.location.reload(true);
+                        return;
+                    }
+                }
                 navigator.serviceWorker.register('./sw.js').catch(() => { });
             });
         }
@@ -30,12 +47,10 @@
         // Fix: Reset zoom after input blur on mobile
         document.addEventListener('focusout', function (e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-                // Force viewport reset
                 const viewport = document.querySelector('meta[name="viewport"]');
                 if (viewport) {
                     viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
                 }
-                // Scroll fix
                 window.scrollTo(0, window.scrollY);
             }
         });
