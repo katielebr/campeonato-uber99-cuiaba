@@ -706,6 +706,146 @@ document.getElementById('participant-name-input').addEventListener('keydown', (e
     if (e.key === 'Enter') addParticipant();
 });
 
+// ===== Download PDF =====
+function downloadRankingPDF() {
+    if (!state.championship) return;
+
+    const category = state.championship.categories.find(c => c.id === state.activeCategory);
+    if (!category) return;
+
+    // Get current ranking data
+    const participants = [...category.participants];
+    const periodLabel = document.getElementById('period-label')?.textContent || '';
+    const viewModeLabels = { daily: 'Diário', weekly: 'Semanal', monthly: 'Mensal', total: 'Total' };
+    const modeLabel = viewModeLabels[state.viewMode] || 'Total';
+
+    // Calculate earnings based on current view mode
+    const ranked = participants.map(p => {
+        let earnings = 0;
+        if (state.viewMode === 'total') {
+            earnings = Object.values(p.earnings).reduce((s, v) => s + v, 0);
+        } else {
+            const dates = getFilteredDates();
+            earnings = dates.reduce((s, d) => s + (p.earnings[d] || 0), 0);
+        }
+        return { ...p, totalEarnings: earnings };
+    }).sort((a, b) => b.totalEarnings - a.totalEarnings);
+
+    // Build PDF HTML
+    const startFormatted = formatDateBR(state.championship.startDate);
+    const endFormatted = formatDateBR(state.championship.endDate);
+
+    const rowsHtml = ranked.map((p, i) => {
+        const pos = i + 1;
+        let medal = '';
+        let posStyle = 'background:#2d3748;color:#a0aec0;';
+        if (pos === 1) { medal = '🥇'; posStyle = 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1403;'; }
+        else if (pos === 2) { medal = '🥈'; posStyle = 'background:linear-gradient(135deg,#94a3b8,#64748b);color:#1e293b;'; }
+        else if (pos === 3) { medal = '🥉'; posStyle = 'background:linear-gradient(135deg,#f97316,#ea580c);color:#1a0e03;'; }
+
+        return `
+            <tr style="border-bottom:1px solid #1e293b;">
+                <td style="padding:12px 8px;text-align:center;">
+                    <div style="width:32px;height:32px;border-radius:50%;${posStyle};display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">${pos}</div>
+                </td>
+                <td style="padding:12px 8px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">${p.name.charAt(0).toUpperCase()}</div>
+                        <span style="font-weight:600;font-size:14px;color:#e2e8f0;">${medal} ${escapeHtml(p.name)}</span>
+                    </div>
+                </td>
+                <td style="padding:12px 8px;text-align:right;font-weight:700;font-size:15px;color:#10b981;">
+                    ${formatCurrency(p.totalEarnings)}
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    const pdfContent = `
+        <div style="font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:30px;min-height:100%;">
+            <div style="text-align:center;margin-bottom:24px;">
+                <div style="font-size:48px;margin-bottom:8px;">🏆</div>
+                <h1 style="font-size:22px;font-weight:800;margin:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Ranking Campeonato</h1>
+                <p style="color:#94a3b8;font-size:13px;margin:4px 0;">Uber + 99Pop</p>
+                <p style="color:#94a3b8;font-size:12px;margin:4px 0;">📅 ${startFormatted} — ${endFormatted}</p>
+            </div>
+            <div style="background:#111827;border:1px solid #1e293b;border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <span style="font-size:14px;font-weight:700;color:#a78bfa;">${category.icon} ${category.name}</span>
+                    <span style="font-size:12px;color:#64748b;">${modeLabel} — ${periodLabel}</span>
+                </div>
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #6366f1;">
+                            <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;width:50px;">#</th>
+                            <th style="padding:8px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;">Participante</th>
+                            <th style="padding:8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;">Ganhos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+            <p style="text-align:center;font-size:10px;color:#475569;margin-top:16px;">
+                Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+        </div>
+    `;
+
+    const container = document.createElement('div');
+    container.innerHTML = pdfContent;
+    document.body.appendChild(container);
+
+    const opt = {
+        margin: 0,
+        filename: `ranking-${category.id}-${state.viewMode}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, backgroundColor: '#0a0e1a' },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(container).save().then(() => {
+        document.body.removeChild(container);
+        showToast('PDF baixado com sucesso! 📄', 'success');
+    });
+}
+
+function getFilteredDates() {
+    if (!state.championship) return [];
+
+    const start = new Date(state.championship.startDate + 'T12:00:00');
+    const end = new Date(state.championship.endDate + 'T12:00:00');
+    const selected = new Date(state.selectedDate + 'T12:00:00');
+    const dates = [];
+
+    if (state.viewMode === 'daily') {
+        dates.push(state.selectedDate);
+    } else if (state.viewMode === 'weekly') {
+        const weekStart = new Date(selected);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(weekStart);
+            d.setDate(d.getDate() + i);
+            const ds = d.toISOString().split('T')[0];
+            if (ds >= state.championship.startDate && ds <= state.championship.endDate) {
+                dates.push(ds);
+            }
+        }
+    } else if (state.viewMode === 'monthly') {
+        const monthStart = new Date(selected.getFullYear(), selected.getMonth(), 1);
+        const monthEnd = new Date(selected.getFullYear(), selected.getMonth() + 1, 0);
+        for (let d = new Date(monthStart); d <= monthEnd; d.setDate(d.getDate() + 1)) {
+            const ds = d.toISOString().split('T')[0];
+            if (ds >= state.championship.startDate && ds <= state.championship.endDate) {
+                dates.push(ds);
+            }
+        }
+    }
+
+    return dates;
+}
+
 // ===== Championship Completion =====
 const HISTORY_KEY = 'ranking-championship-history';
 

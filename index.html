@@ -12,17 +12,17 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ranking App">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(() => { });
+                navigator.serviceWorker.register('./sw.js').catch(() => { });
             });
         }
     </script>
@@ -274,24 +274,36 @@
                 <div class="ranking-section">
                     <div class="ranking-header">
                         <h3 id="ranking-title">Ranking</h3>
-                        <button class="btn btn-sm btn-accent" id="btn-add-participant" onclick="showAddParticipant()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            Adicionar
-                        </button>
-                    </div>
-                    <div id="ranking-list" class="ranking-list">
-                        <div class="empty-state">
-                            <div class="empty-icon">👥</div>
-                            <p>Nenhum participante ainda</p>
-                            <span>Clique em "Adicionar" para incluir participantes</span>
+                        <div style="display:flex;gap:0.5rem">
+                            <button class="btn btn-sm btn-ghost" id="btn-download-pdf" onclick="downloadRankingPDF()"
+                                title="Baixar PDF">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                PDF
+                            </button>
+                            <button class="btn btn-sm btn-accent" id="btn-add-participant"
+                                onclick="showAddParticipant()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                                Adicionar
+                            </button>
+                        </div>
+                        <div id="ranking-list" class="ranking-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <p>Nenhum participante ainda</p>
+                                <span>Clique em "Adicionar" para incluir participantes</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
         </section>
 
         <!-- View: History -->
