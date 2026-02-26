@@ -327,7 +327,6 @@ textarea {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 .setup-hero {
@@ -552,7 +551,6 @@ textarea {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 /* Info Banner */
