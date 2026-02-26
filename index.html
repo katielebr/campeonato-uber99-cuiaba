@@ -18,32 +18,48 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=14">
+    <link rel="stylesheet" href="css/style.css?v=99">
+    <style id="force-header-fix">
+        /* Fallback inline styles to force the header down */
+        #app-header {
+            padding-top: 5rem !important;
+            /* Espaço gigante no topo */
+            padding-bottom: 2rem !important;
+            /* Linha divisória bem baixa */
+            border-bottom-width: 3px !important;
+            /* Linha bem grossa para conferir */
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         // Force clear all caches and reinstall SW
-        const APP_VERSION = '15';
+        const APP_VERSION = '16';
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 const lastVersion = localStorage.getItem('app-version');
                 if (lastVersion !== APP_VERSION) {
+                    // Visual confirmation for the user
+                    console.log('Atualizando app para v' + APP_VERSION);
+
                     // Clear ALL caches
                     const cacheNames = await caches.keys();
                     await Promise.all(cacheNames.map(name => caches.delete(name)));
+
                     // Unregister ALL service workers
                     const registrations = await navigator.serviceWorker.getRegistrations();
                     await Promise.all(registrations.map(r => r.unregister()));
+
                     localStorage.setItem('app-version', APP_VERSION);
-                    // Reload to get fresh files
-                    if (lastVersion) {
-                        window.location.reload(true);
-                        return;
-                    }
+
+                    // Force reload the page without cache
+                    window.location.href = window.location.href.split('?')[0] + '?update=' + APP_VERSION;
                 }
                 navigator.serviceWorker.register('./sw.js').catch(() => { });
             });
         }
+    </script>
 
+    <script>
         // Fix: Reset zoom after input blur on mobile
         document.addEventListener('focusout', function (e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
@@ -515,7 +531,7 @@
         <div id="toast" class="toast"></div>
     </div>
 
-    <script src="js/app.js?v=11"></script>
+    <script src="js/app.js?v=99"></script>
 </body>
 
 </html>
