@@ -87,6 +87,17 @@ textarea {
   font-size: inherit;
 }
 
+/* Prevent iOS zoom on input focus - must be 16px+ */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+  font-size: 16px !important;
+}
+
 /* ===== App Container ===== */
 #app {
   min-height: 100vh;
@@ -311,7 +322,7 @@ textarea {
 .setup-container {
   max-width: 100%;
   margin: 0;
-  padding: 1rem 0.75rem 2rem;
+  padding: 1rem 1rem 2rem;
   width: 100%;
   flex: 1;
   display: flex;
@@ -533,7 +544,7 @@ textarea {
 .dashboard-container {
   max-width: 100%;
   margin: 0;
-  padding: 0.5rem 0.75rem 2rem;
+  padding: 0.75rem 1rem 2rem;
   width: 100%;
   flex: 1;
   display: flex;
