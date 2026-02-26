@@ -38,7 +38,7 @@ For the best experience, we recommend installing it as an app:
 2. **Android (Chrome)**: Tap the **Three Dots (⋮)** and select **"Install App"**.
 
 ## 📄 License
-This project was developed for the Uber/99 driver community in Cuiabá.
+This project was developed for the Uber/99 driver community in Cuiabá-MT, Brazil.
 
 ---
 *Developed with focus on performance and user experience.*
