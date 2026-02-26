@@ -18,22 +18,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=99">
-    <style id="force-header-fix">
-        /* Fallback inline styles to force the header down */
-        #app-header {
-            padding-top: 5rem !important;
-            /* Espaço gigante no topo */
-            padding-bottom: 2rem !important;
-            /* Linha divisória bem baixa */
-            border-bottom-width: 3px !important;
-            /* Linha bem grossa para conferir */
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css?v=17">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         // Force clear all caches and reinstall SW
-        const APP_VERSION = '16';
+        const APP_VERSION = '17';
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 const lastVersion = localStorage.getItem('app-version');
@@ -52,7 +41,7 @@
                     localStorage.setItem('app-version', APP_VERSION);
 
                     // Force reload the page without cache
-                    window.location.href = window.location.href.split('?')[0] + '?update=' + APP_VERSION;
+                    window.location.reload(true);
                 }
                 navigator.serviceWorker.register('./sw.js').catch(() => { });
             });
