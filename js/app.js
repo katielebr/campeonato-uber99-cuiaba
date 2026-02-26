@@ -681,23 +681,45 @@ function openModal(modalId) {
     document.getElementById(modalId).classList.add('active');
 }
 
+function resetZoom() {
+    // Blur any focused input
+    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT')) {
+        document.activeElement.blur();
+    }
+    // Force viewport reset
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+    }
+    window.scrollTo(0, 0);
+}
+
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    resetZoom();
+    setTimeout(() => {
+        document.getElementById(modalId).classList.remove('active');
+    }, 50);
 }
 
 // Close modal on overlay click
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('active')) {
-        e.target.classList.remove('active');
+        resetZoom();
+        setTimeout(() => {
+            e.target.classList.remove('active');
+        }, 50);
     }
 });
 
 // Close modal on Escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-            modal.classList.remove('active');
-        });
+        resetZoom();
+        setTimeout(() => {
+            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+        }, 50);
     }
 });
 
