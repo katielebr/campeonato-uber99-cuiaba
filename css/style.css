@@ -119,8 +119,8 @@ textarea {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 2px solid var(--border-color);
-  padding: 100px 0.5rem 65px;
-  /* Espaço no topo de 100px, inferior de 65px */
+  padding: 130px 0.5rem 90px;
+  /* Espaço no topo de 130px, inferior de 90px */
   width: 100%;
 }
 
