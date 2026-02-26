@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ranking-app-v3';
+const CACHE_NAME = 'ranking-app-v4';
 const STATIC_ASSETS = [
     './',
     './index.html',
