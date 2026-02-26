@@ -62,6 +62,8 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  width: 100%;
 }
 
 body {
@@ -69,8 +71,13 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   line-height: 1.5;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 input,
@@ -84,7 +91,11 @@ textarea {
 /* ===== App Container ===== */
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== Header ===== */
@@ -245,7 +256,9 @@ textarea {
 }
 
 .view.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 @keyframes fadeIn {
@@ -299,6 +312,8 @@ textarea {
   max-width: 520px;
   margin: 0 auto;
   padding: 2rem 1rem 3rem;
+  width: 100%;
+  flex: 1;
 }
 
 .setup-hero {
@@ -516,6 +531,8 @@ textarea {
   max-width: 800px;
   margin: 0 auto;
   padding: 1rem 1rem 3rem;
+  width: 100%;
+  flex: 1;
 }
 
 /* Info Banner */
