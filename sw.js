@@ -1,8 +1,8 @@
-const CACHE_NAME = 'ranking-app-v26';
+const CACHE_NAME = 'ranking-app-v27';
 const STATIC_ASSETS = [
     './',
     './index.html',
-    './css/style.css?v=26',
+    './css/style.css?v=27',
     './js/app.js?v=99',
     './manifest.json',
     './icons/icon-192.png',
