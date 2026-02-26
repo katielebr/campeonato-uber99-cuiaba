@@ -106,6 +106,8 @@ textarea {
   position: relative;
   display: flex;
   flex-direction: column;
+  padding-top: 0.5rem;
+  /* Espaço pequeno antes de tudo no topo */
 }
 
 /* ===== Header ===== */
@@ -117,7 +119,8 @@ textarea {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
-  padding: 2rem 0.5rem 0.25rem;
+  padding: 2.25rem 0.5rem 0.5rem;
+  /* Aumentado ainda mais para garantir o respiro */
   width: 100%;
 }
 
