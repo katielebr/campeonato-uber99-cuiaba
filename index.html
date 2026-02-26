@@ -274,35 +274,32 @@
                 <div class="ranking-section">
                     <div class="ranking-header">
                         <h3 id="ranking-title">Ranking</h3>
-                        <div style="display:flex;gap:0.5rem">
-                            <button class="btn btn-sm btn-ghost" id="btn-download-pdf" onclick="downloadRankingPDF()"
-                                title="Baixar PDF">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                                    <polyline points="7 10 12 15 17 10" />
-                                    <line x1="12" y1="15" x2="12" y2="3" />
-                                </svg>
-                                PDF
-                            </button>
-                            <button class="btn btn-sm btn-accent" id="btn-add-participant"
-                                onclick="showAddParticipant()">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="12" y1="5" x2="12" y2="19" />
-                                    <line x1="5" y1="12" x2="19" y2="12" />
-                                </svg>
-                                Adicionar
-                            </button>
-                        </div>
-                        <div id="ranking-list" class="ranking-list">
-                            <div class="empty-state">
-                                <div class="empty-icon">👥</div>
-                                <p>Nenhum participante ainda</p>
-                                <span>Clique em "Adicionar" para incluir participantes</span>
-                            </div>
+                        <button class="btn btn-sm btn-accent" id="btn-add-participant" onclick="showAddParticipant()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Adicionar
+                        </button>
+                    </div>
+                    <div id="ranking-list" class="ranking-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <p>Nenhum participante ainda</p>
+                            <span>Clique em "Adicionar" para incluir participantes</span>
                         </div>
                     </div>
+                    <button class="btn btn-ghost btn-download-bottom" id="btn-download-pdf"
+                        onclick="downloadRankingPDF()" title="Baixar Ranking em PDF">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Baixar Ranking em PDF
+                    </button>
                 </div>
         </section>
 
