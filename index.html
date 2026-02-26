@@ -26,6 +26,19 @@
                 navigator.serviceWorker.register('./sw.js').catch(() => { });
             });
         }
+
+        // Fix: Reset zoom after input blur on mobile
+        document.addEventListener('focusout', function (e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                // Force viewport reset
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                }
+                // Scroll fix
+                window.scrollTo(0, window.scrollY);
+            }
+        });
     </script>
 </head>
 

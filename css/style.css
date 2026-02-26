@@ -432,9 +432,12 @@ textarea {
   border: 1px solid var(--border-color-light);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 16px;
   transition: all var(--transition-fast);
   outline: none;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-input:focus {
