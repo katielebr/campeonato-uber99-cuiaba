@@ -750,8 +750,8 @@ document.getElementById('participant-name-input').addEventListener('keydown', (e
     if (e.key === 'Enter') addParticipant();
 });
 
-// ===== Download PDF =====
-function downloadRankingPDF() {
+// ===== Download Instagram Images =====
+async function downloadRankingInstagram() {
     if (!state.championship) return;
 
     const category = state.championship.categories.find(c => c.id === state.activeCategory);
@@ -775,84 +775,133 @@ function downloadRankingPDF() {
         return { ...p, totalEarnings: earnings };
     }).sort((a, b) => b.totalEarnings - a.totalEarnings);
 
-    // Build PDF HTML
+    if (ranked.length === 0) {
+        showToast('Nenhum participante no ranking', 'error');
+        return;
+    }
+
     const startFormatted = formatDateBR(state.championship.startDate);
     const endFormatted = formatDateBR(state.championship.endDate);
+    
+    // Configurações da imagem (Post de Instagram Retrato - 4:5)
+    // 1080 x 1350 px
+    const MAX_PER_PAGE = 10;
+    const pagesCount = Math.ceil(ranked.length / MAX_PER_PAGE);
+    
+    showToast(`Gerando ${pagesCount} imagem(ns)... isso pode levar alguns segundos`, 'success');
 
-    const rowsHtml = ranked.map((p, i) => {
-        const pos = i + 1;
-        let medal = '';
-        let posStyle = 'background:#2d3748;color:#a0aec0;';
-        if (pos === 1) { medal = '🥇'; posStyle = 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1403;'; }
-        else if (pos === 2) { medal = '🥈'; posStyle = 'background:linear-gradient(135deg,#94a3b8,#64748b);color:#1e293b;'; }
-        else if (pos === 3) { medal = '🥉'; posStyle = 'background:linear-gradient(135deg,#f97316,#ea580c);color:#1a0e03;'; }
+    for (let page = 0; page < pagesCount; page++) {
+        const startIndex = page * MAX_PER_PAGE;
+        const pageParticipants = ranked.slice(startIndex, startIndex + MAX_PER_PAGE);
+        
+        const rowsHtml = pageParticipants.map((p, index) => {
+            const pos = startIndex + index + 1;
+            let medal = '';
+            let posStyle = 'background:#2d3748;color:#a0aec0;';
+            if (pos === 1) { medal = '🥇'; posStyle = 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#1a1403;'; }
+            else if (pos === 2) { medal = '🥈'; posStyle = 'background:linear-gradient(135deg,#94a3b8,#64748b);color:#1e293b;'; }
+            else if (pos === 3) { medal = '🥉'; posStyle = 'background:linear-gradient(135deg,#f97316,#ea580c);color:#1a0e03;'; }
 
-        return `
-            <tr style="border-bottom:1px solid #1e293b;">
-                <td style="padding:12px 8px;text-align:center;">
-                    <div style="width:32px;height:32px;border-radius:50%;${posStyle};display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">${pos}</div>
-                </td>
-                <td style="padding:12px 8px;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">${p.name.charAt(0).toUpperCase()}</div>
-                        <span style="font-weight:600;font-size:14px;color:#e2e8f0;">${medal} ${escapeHtml(p.name)}</span>
-                    </div>
-                </td>
-                <td style="padding:12px 8px;text-align:right;font-weight:700;font-size:15px;color:#10b981;">
-                    ${formatCurrency(p.totalEarnings)}
-                </td>
-            </tr>
-        `;
-    }).join('');
+            return `
+                <tr style="border-bottom:2px solid #1e293b;">
+                    <td style="padding:22px 10px;text-align:center;width:90px;">
+                        <div style="width:54px;height:54px;border-radius:50%;${posStyle};display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;">${pos}</div>
+                    </td>
+                    <td style="padding:22px 10px;">
+                        <div style="display:flex;align-items:center;gap:18px;">
+                            <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px;">${p.name.charAt(0).toUpperCase()}</div>
+                            <span style="font-weight:700;font-size:28px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:440px;">${medal} ${escapeHtml(p.name)}</span>
+                        </div>
+                    </td>
+                    <td style="padding:22px 10px;text-align:right;font-weight:800;font-size:30px;color:#10b981;">
+                        ${formatCurrency(p.totalEarnings)}
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
-    const pdfContent = `
-        <div style="font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:30px;min-height:100%;">
-            <div style="text-align:center;margin-bottom:24px;">
-                <div style="font-size:48px;margin-bottom:8px;">🏆</div>
-                <h1 style="font-size:22px;font-weight:800;margin:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Ranking Campeonato</h1>
-                <p style="color:#94a3b8;font-size:13px;margin:4px 0;">Uber + 99Pop</p>
-                <p style="color:#94a3b8;font-size:12px;margin:4px 0;">📅 ${startFormatted} — ${endFormatted}</p>
-            </div>
-            <div style="background:#111827;border:1px solid #1e293b;border-radius:12px;padding:16px;margin-bottom:16px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <span style="font-size:14px;font-weight:700;color:#a78bfa;">${category.icon} ${category.name}</span>
-                    <span style="font-size:12px;color:#64748b;">${modeLabel} — ${periodLabel}</span>
+        const pageHtml = `
+            <div style="width:1080px;height:1350px;font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:60px;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
+                
+                <!-- Decorators -->
+                <div style="position:absolute;top:-80px;right:-80px;width:350px;height:350px;background:#6366f1;filter:blur(160px);opacity:0.35;border-radius:50%;"></div>
+                <div style="position:absolute;bottom:-80px;left:-80px;width:350px;height:350px;background:#8b5cf6;filter:blur(160px);opacity:0.35;border-radius:50%;"></div>
+
+                <div style="text-align:center;margin-bottom:40px;position:relative;z-index:1;">
+                    <div style="font-size:80px;margin-bottom:12px;line-height:1;">🏆</div>
+                    <h1 style="font-size:52px;font-weight:900;margin:0 0 12px 0;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:1px;">Ranking Campeonato</h1>
+                    <p style="color:#cbd5e1;font-size:28px;font-weight:600;margin:0 0 12px 0;">Uber + 99Pop</p>
+                    <p style="color:#94a3b8;font-size:22px;margin:0;">📅 ${startFormatted} — ${endFormatted}</p>
                 </div>
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr style="border-bottom:2px solid #6366f1;">
-                            <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;width:50px;">#</th>
-                            <th style="padding:8px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;">Participante</th>
-                            <th style="padding:8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;">Ganhos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
+
+                <div style="background:#111827;border:2px solid #1e293b;border-radius:30px;padding:34px;flex-grow:1;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);position:relative;z-index:1;display:flex;flex-direction:column;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:24px;border-bottom:2px solid #1e293b;">
+                        <span style="font-size:32px;font-weight:800;color:#a78bfa;display:flex;align-items:center;gap:12px;">
+                            ${category.icon} ${category.name}
+                        </span>
+                        <div style="text-align:right;">
+                            <div style="font-size:24px;color:#e2e8f0;font-weight:700;">${modeLabel}</div>
+                            <div style="font-size:18px;color:#94a3b8;margin-top:6px;">${periodLabel}</div>
+                        </div>
+                    </div>
+                    
+                    <table style="width:100%;border-collapse:collapse;margin-top:10px;">
+                        <thead>
+                            <tr style="border-bottom:3px solid #6366f1;">
+                                <th style="padding:16px 10px;text-align:center;font-size:20px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;width:90px;">#</th>
+                                <th style="padding:16px 10px;text-align:left;font-size:20px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Participante</th>
+                                <th style="padding:16px 10px;text-align:right;font-size:20px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Ganhos (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top:auto;text-align:center;color:#64748b;font-size:18px;padding-top:24px;font-weight:500;">
+                        ${pagesCount > 1 ? `Página ${page + 1} de ${pagesCount} • ` : ''}Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </div>
             </div>
-            <p style="text-align:center;font-size:10px;color:#475569;margin-top:16px;">
-                Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-            </p>
-        </div>
-    `;
+        `;
 
-    const container = document.createElement('div');
-    container.innerHTML = pdfContent;
-    document.body.appendChild(container);
+        const container = document.createElement('div');
+        // Usar visibility ao invés de display none/absolute off-screen para o canvas renderizar corretamente
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        container.innerHTML = pageHtml;
+        document.body.appendChild(container);
 
-    const opt = {
-        margin: 0,
-        filename: `ranking-${category.id}-${state.viewMode}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, backgroundColor: '#0a0e1a' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+        try {
+            await document.fonts.ready; // Aguarda fontes carregarem
+            const canvas = await html2canvas(container.firstElementChild, {
+                scale: 1.5,
+                backgroundColor: '#0a0e1a',
+                useCORS: true,
+                logging: false,
+                width: 1080,
+                height: 1350
+            });
 
-    html2pdf().set(opt).from(container).save().then(() => {
-        document.body.removeChild(container);
-        showToast('PDF baixado com sucesso! 📄', 'success');
-    });
+            // Trigger download for each page
+            const link = document.createElement('a');
+            link.download = `ranking-${category.id}-${state.viewMode}-pg${page + 1}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+
+        } catch (error) {
+            console.error('Error generating image:', error);
+            showToast('Erro ao gerar imagem', 'error');
+        } finally {
+            document.body.removeChild(container);
+        }
+
+        // Add a small delay between downloads if multiple pages
+        if (page < pagesCount - 1) {
+            await new Promise(r => setTimeout(r, 800));
+        }
+    }
 }
 
 function getFilteredDates() {

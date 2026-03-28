@@ -18,11 +18,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=27">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="css/style.css?v=28">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // Force clear all caches and reinstall SW
-        const APP_VERSION = '27';
+        const APP_VERSION = '28';
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 const lastVersion = localStorage.getItem('app-version');
@@ -324,15 +324,15 @@
                             <span>Clique em "Adicionar" para incluir participantes</span>
                         </div>
                     </div>
-                    <button class="btn btn-ghost btn-download-bottom" id="btn-download-pdf"
-                        onclick="downloadRankingPDF()" title="Baixar Ranking em PDF">
+                    <button class="btn btn-ghost btn-download-bottom" id="btn-download-instagram"
+                        onclick="downloadRankingInstagram()" title="Baixar p/ Instagram">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                         </svg>
-                        Baixar Ranking em PDF
+                        Baixar p/ Instagram
                     </button>
                 </div>
         </section>
