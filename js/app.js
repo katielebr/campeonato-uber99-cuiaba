@@ -821,7 +821,7 @@ async function downloadRankingInstagram() {
         }).join('');
 
         const pageHtml = `
-            <div style="width:1080px;height:1350px;font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:50px;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
+            <div style="width:1080px;height:1350px;font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:50px;box-sizing:border-box;display:flex;flex-direction:column;position:relative;overflow:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;">
                 
                 <div style="text-align:center;margin-bottom:30px;position:relative;z-index:1;">
                     <div style="font-size:80px;margin-bottom:12px;line-height:1;">🏆</div>
@@ -862,31 +862,32 @@ async function downloadRankingInstagram() {
         `;
 
         const container = document.createElement('div');
-        // Usar top: 0 e z-index -1 para permitir renderização correta sem afetar o layout
-        container.style.position = 'absolute';
-        container.style.left = '-9999px';
+        // Renderizar no viewport com opacidade quase zero para garantir captura perfeita no mobile
+        container.style.position = 'fixed';
+        container.style.left = '0';
         container.style.top = '0';
         container.style.zIndex = '-9999';
+        container.style.opacity = '0.01';
+        container.style.pointerEvents = 'none';
         container.innerHTML = pageHtml;
         document.body.appendChild(container);
 
         try {
-            // Atraso intencional para garantir que o navegador desenhou o elemento HTML5
-            await new Promise(r => setTimeout(r, 200));
+            // Atraso um pouco maior para garantir renderização no mobile
+            await new Promise(r => setTimeout(r, 400));
 
-            const canvas = await html2canvas(container.firstElementChild, {
+            const captureTarget = container.firstElementChild;
+            const canvas = await html2canvas(captureTarget, {
                 scale: 1.5,
                 backgroundColor: '#0a0e1a',
                 useCORS: true,
-                logging: true, // ativar logs para debug
+                logging: false,
                 width: 1080,
                 height: 1350,
                 windowWidth: 1080,
                 windowHeight: 1350,
                 x: 0,
-                y: 0,
-                scrollX: 0,
-                scrollY: 0
+                y: 0
             });
 
             // Trigger download for each page
