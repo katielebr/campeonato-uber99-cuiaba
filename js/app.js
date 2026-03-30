@@ -788,6 +788,9 @@ async function downloadRankingInstagram() {
     const MAX_PER_PAGE = 7;
     const pagesCount = Math.ceil(ranked.length / MAX_PER_PAGE);
     
+    // Armazena as imagens renderizadas
+    const generatedImages = [];
+    
     const downloadContainer = document.getElementById('download-images-container');
     if (downloadContainer) {
         downloadContainer.innerHTML = `<div id="generation-progress" style="padding: 2rem; color: #94a3b8; text-align: center; font-weight: 500;">🎨 Inicializando geração (0 de ${pagesCount})...<br><small style="font-size:0.8rem;opacity:0.7;">Por favor, não feche esta tela.</small></div>`;
@@ -929,61 +932,15 @@ async function downloadRankingInstagram() {
                 img.style.border = '2px solid rgba(99, 102, 241, 0.3)';
                 img.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
                 img.style.display = 'block';
-                
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-primary btn-lg';
-                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Baixar Parte ${page + 1}`;
-                
-                btn.onclick = async () => {
-                    try {
-                        const res = await fetch(dataUrl);
-                        const blob = await res.blob();
-                        if (navigator.share && navigator.canShare) {
-                            try {
-                                const file = new File([blob], fileName, { type: 'image/jpeg' });
-                                if (navigator.canShare({ files: [file] })) {
-                                    await navigator.share({ files: [file], title: 'Ranking' });
-                                    return;
-                                }
-                            } catch(e) { console.log(e); }
-                        }
-                        const blobUrl = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.download = fileName;
-                        link.href = blobUrl;
-                        link.style.display = 'none';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-                    } catch(err) {
-                        alert("Erro ao salvar arquivo: " + err.message);
-                    }
-                };
 
                 wrapper.appendChild(img);
-                wrapper.appendChild(btn);
                 downloadContainer.appendChild(wrapper);
                 
                 showToast(`Imagem ${page + 1} processada! ✅`, 'success');
-            } else {
-                // Fallback process
-                try {
-                    const res = await fetch(dataUrl);
-                    const blob = await res.blob();
-                    const blobUrl = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.download = fileName;
-                    link.href = blobUrl;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-                } catch(err) {
-                    console.log(err);
-                }
             }
+            
+            // Adiciona na lista
+            generatedImages.push({ dataUrl, fileName });
 
         } catch (error) {
             console.error('Error generating image:', error);
@@ -998,13 +955,89 @@ async function downloadRankingInstagram() {
             await new Promise(r => setTimeout(r, 1200));
         } else {
             // Fim do loop
-            if (downloadContainer) {
+            if (downloadContainer && generatedImages.length > 0) {
                 const finalMsg = document.createElement('div');
                 finalMsg.style.color = '#10b981';
                 finalMsg.style.fontWeight = 'bold';
                 finalMsg.style.marginTop = '1rem';
-                finalMsg.innerHTML = '✨ Imagens concluídas! Pronto para salvar. ✨';
+                finalMsg.innerHTML = '✨ Imagens concluídas! ✨';
                 downloadContainer.appendChild(finalMsg);
+                
+                const btnGroup = document.createElement('div');
+                btnGroup.style.marginTop = '1rem';
+                btnGroup.style.width = '100%';
+                
+                const btnSaveAll = document.createElement('button');
+                btnSaveAll.className = 'btn btn-primary btn-lg';
+                btnSaveAll.style.width = '100%';
+                btnSaveAll.style.justifyContent = 'center';
+                btnSaveAll.style.position = 'sticky';
+                btnSaveAll.style.bottom = '0.5rem';
+                btnSaveAll.style.zIndex = '100';
+                btnSaveAll.style.boxShadow = '0 -4px 15px rgba(0,0,0,0.5)';
+                btnSaveAll.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Salvar Todas (${generatedImages.length})`;
+                
+                btnSaveAll.onclick = async () => {
+                    btnSaveAll.disabled = true;
+                    btnSaveAll.innerHTML = '⏳ Preparando...';
+                    try {
+                        const files = [];
+                        for (const img of generatedImages) {
+                            const res = await fetch(img.dataUrl);
+                            const blob = await res.blob();
+                            files.push(new File([blob], img.fileName, { type: 'image/jpeg' }));
+                        }
+                        
+                        // Tentativa 1: Compartilhar Tudo via Share API
+                        if (navigator.share && navigator.canShare && navigator.canShare({ files: files })) {
+                            try {
+                                await navigator.share({ files: files, title: 'Ranking' });
+                                showToast('Imagens prontas para salvar! ✅', 'success');
+                                btnSaveAll.disabled = false;
+                                btnSaveAll.innerHTML = '✅ Compartilhado';
+                                return;
+                            } catch(e) { console.log("Compartilhamento cancelado", e); }
+                        }
+                        
+                        // Tentativa 2: Baixar sequencial
+                        for (let i = 0; i < files.length; i++) {
+                            const blobUrl = URL.createObjectURL(files[i]);
+                            const link = document.createElement('a');
+                            link.download = generatedImages[i].fileName;
+                            link.href = blobUrl;
+                            link.style.display = 'none';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+                            await new Promise(r => setTimeout(r, 600)); // Delay between downloads
+                        }
+                        showToast('Downloads concluídos! ✅', 'success');
+                    } catch (err) {
+                        alert("Erro ao salvar todas: " + err.message);
+                    }
+                    btnSaveAll.disabled = false;
+                    btnSaveAll.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Baixar Novamente`;
+                };
+                
+                btnGroup.appendChild(btnSaveAll);
+                downloadContainer.appendChild(btnGroup);
+            } else if (!downloadContainer && generatedImages.length > 0) {
+                // Fallback for missing container
+                for (const img of generatedImages) {
+                    const res = await fetch(img.dataUrl);
+                    const blob = await res.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = img.fileName;
+                    link.href = blobUrl;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+                    await new Promise(r => setTimeout(r, 600)); 
+                }
             }
         }
     }
