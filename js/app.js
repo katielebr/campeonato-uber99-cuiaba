@@ -785,10 +785,10 @@ async function downloadRankingInstagram() {
     
     // Configurações da imagem (Post de Instagram Retrato - 4:5)
     // 1080 x 1350 px
-    const MAX_PER_PAGE = 10;
+    const MAX_PER_PAGE = 7;
     const pagesCount = Math.ceil(ranked.length / MAX_PER_PAGE);
     
-    showToast(`Gerando ${pagesCount} imagem(ns)... isso pode levar alguns segundos`, 'success');
+    showToast(`Gerando imagem... aguarde...`, 'success');
 
     for (let page = 0; page < pagesCount; page++) {
         const startIndex = page * MAX_PER_PAGE;
@@ -821,20 +821,16 @@ async function downloadRankingInstagram() {
         }).join('');
 
         const pageHtml = `
-            <div style="width:1080px;height:1350px;font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:60px;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
+            <div style="width:1080px;height:1350px;font-family:'Inter',sans-serif;background:#0a0e1a;color:#e2e8f0;padding:50px;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
                 
-                <!-- Decorators -->
-                <div style="position:absolute;top:-80px;right:-80px;width:350px;height:350px;background:#6366f1;filter:blur(160px);opacity:0.35;border-radius:50%;"></div>
-                <div style="position:absolute;bottom:-80px;left:-80px;width:350px;height:350px;background:#8b5cf6;filter:blur(160px);opacity:0.35;border-radius:50%;"></div>
-
-                <div style="text-align:center;margin-bottom:40px;position:relative;z-index:1;">
+                <div style="text-align:center;margin-bottom:30px;position:relative;z-index:1;">
                     <div style="font-size:80px;margin-bottom:12px;line-height:1;">🏆</div>
                     <h1 style="font-size:52px;font-weight:900;margin:0 0 12px 0;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:1px;">Ranking Campeonato</h1>
                     <p style="color:#cbd5e1;font-size:28px;font-weight:600;margin:0 0 12px 0;">Uber + 99Pop</p>
                     <p style="color:#94a3b8;font-size:22px;margin:0;">📅 ${startFormatted} — ${endFormatted}</p>
                 </div>
 
-                <div style="background:#111827;border:2px solid #1e293b;border-radius:30px;padding:34px;flex-grow:1;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);position:relative;z-index:1;display:flex;flex-direction:column;">
+                <div style="background:#111827;border:2px solid #1e293b;border-radius:30px;padding:34px;flex-grow:1;position:relative;z-index:1;display:flex;flex-direction:column;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:24px;border-bottom:2px solid #1e293b;">
                         <span style="font-size:32px;font-weight:800;color:#a78bfa;display:flex;align-items:center;gap:12px;">
                             ${category.icon} ${category.name}
@@ -866,33 +862,51 @@ async function downloadRankingInstagram() {
         `;
 
         const container = document.createElement('div');
-        // Usar visibility ao invés de display none/absolute off-screen para o canvas renderizar corretamente
+        // Usar top: 0 e z-index -1 para permitir renderização correta sem afetar o layout
         container.style.position = 'absolute';
         container.style.left = '-9999px';
         container.style.top = '0';
+        container.style.zIndex = '-9999';
         container.innerHTML = pageHtml;
         document.body.appendChild(container);
 
         try {
-            await document.fonts.ready; // Aguarda fontes carregarem
+            // Atraso intencional para garantir que o navegador desenhou o elemento HTML5
+            await new Promise(r => setTimeout(r, 200));
+
             const canvas = await html2canvas(container.firstElementChild, {
                 scale: 1.5,
                 backgroundColor: '#0a0e1a',
                 useCORS: true,
-                logging: false,
+                logging: true, // ativar logs para debug
                 width: 1080,
-                height: 1350
+                height: 1350,
+                windowWidth: 1080,
+                windowHeight: 1350,
+                x: 0,
+                y: 0,
+                scrollX: 0,
+                scrollY: 0
             });
 
             // Trigger download for each page
             const link = document.createElement('a');
-            link.download = `ranking-${category.id}-${state.viewMode}-pg${page + 1}.jpg`;
+            const fileName = `ranking-${category.id}-${state.viewMode}-pg${page + 1}.jpg`;
+            link.download = fileName;
+            
+            // Força o iOS/alguns navegadores a processarem o DataURI corretamente
             link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.style.display = 'none';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
+            
+            showToast('Download iniciado! ✅', 'success');
 
         } catch (error) {
             console.error('Error generating image:', error);
-            showToast('Erro ao gerar imagem', 'error');
+            showToast('Erro ao gerar a imagem no seu dispositivo 😢', 'error');
+            alert('Erro ao exportar: ' + error.message);
         } finally {
             document.body.removeChild(container);
         }
