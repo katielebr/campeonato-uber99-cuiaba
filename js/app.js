@@ -788,7 +788,13 @@ async function downloadRankingInstagram() {
     const MAX_PER_PAGE = 7;
     const pagesCount = Math.ceil(ranked.length / MAX_PER_PAGE);
     
-    showToast(`Gerando imagem... aguarde...`, 'success');
+    const downloadContainer = document.getElementById('download-images-container');
+    if (downloadContainer) {
+        downloadContainer.innerHTML = '<div style="padding: 2rem; color: #94a3b8; text-align: center;">🎨 Gerando imagens, aguarde...</div>';
+        openModal('modal-download');
+    } else {
+        showToast(`Gerando imagem... aguarde...`, 'success');
+    }
 
     for (let page = 0; page < pagesCount; page++) {
         const startIndex = page * MAX_PER_PAGE;
@@ -890,19 +896,58 @@ async function downloadRankingInstagram() {
                 y: 0
             });
 
-            // Trigger download for each page
-            const link = document.createElement('a');
+            if (page === 0 && downloadContainer) {
+                downloadContainer.innerHTML = '';
+            }
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
             const fileName = `ranking-${category.id}-${state.viewMode}-pg${page + 1}.jpg`;
-            link.download = fileName;
-            
-            // Força o iOS/alguns navegadores a processarem o DataURI corretamente
-            link.href = canvas.toDataURL('image/jpeg', 0.95);
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showToast('Download iniciado! ✅', 'success');
+
+            if (downloadContainer) {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.gap = '0.75rem';
+                wrapper.style.width = '100%';
+                wrapper.style.maxWidth = '320px';
+                
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.style.width = '100%';
+                img.style.borderRadius = '12px';
+                img.style.border = '2px solid rgba(99, 102, 241, 0.3)';
+                img.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+                img.style.display = 'block';
+                
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary btn-lg';
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Baixar Parte ${page + 1}`;
+                
+                btn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = dataUrl;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(btn);
+                downloadContainer.appendChild(wrapper);
+                
+                showToast(`Imagem ${page + 1} de ${pagesCount} processada! ✅`, 'success');
+            } else {
+                // Fallback process
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = dataUrl;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
 
         } catch (error) {
             console.error('Error generating image:', error);
@@ -914,7 +959,7 @@ async function downloadRankingInstagram() {
 
         // Add a small delay between downloads if multiple pages
         if (page < pagesCount - 1) {
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 200));
         }
     }
 }
