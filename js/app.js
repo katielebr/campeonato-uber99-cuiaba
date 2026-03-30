@@ -790,13 +790,20 @@ async function downloadRankingInstagram() {
     
     const downloadContainer = document.getElementById('download-images-container');
     if (downloadContainer) {
-        downloadContainer.innerHTML = '<div style="padding: 2rem; color: #94a3b8; text-align: center;">🎨 Gerando imagens, aguarde...</div>';
+        downloadContainer.innerHTML = `<div id="generation-progress" style="padding: 2rem; color: #94a3b8; text-align: center; font-weight: 500;">🎨 Inicializando geração (0 de ${pagesCount})...<br><small style="font-size:0.8rem;opacity:0.7;">Por favor, não feche esta tela.</small></div>`;
         openModal('modal-download');
     } else {
-        showToast(`Gerando imagem... aguarde...`, 'success');
+        showToast(`Gerando imagens... aguarde...`, 'success');
     }
 
+    // Aguarda animação do modal abrir
+    await new Promise(r => setTimeout(r, 600));
+
     for (let page = 0; page < pagesCount; page++) {
+        
+        const progressEl = document.getElementById('generation-progress');
+        if (progressEl) progressEl.innerHTML = `🎨 Gerando imagem ${page + 1} de ${pagesCount}...<br><small style="font-size:0.8rem;opacity:0.7;">Processando participantes...</small>`;
+
         const startIndex = page * MAX_PER_PAGE;
         const pageParticipants = ranked.slice(startIndex, startIndex + MAX_PER_PAGE);
         
@@ -879,12 +886,14 @@ async function downloadRankingInstagram() {
         document.body.appendChild(container);
 
         try {
-            // Atraso um pouco maior para garantir renderização no mobile
-            await new Promise(r => setTimeout(r, 400));
+            // Atraso garantido para o ciclo de paint renderizar o elemento escondido
+            await new Promise(r => setTimeout(r, 600));
 
             const captureTarget = container.firstElementChild;
+            
+            // REDUZIDO SCALE PARA 1.0 NO MOBILE PARA EVITAR MEMORY CRASH
             const canvas = await html2canvas(captureTarget, {
-                scale: 1.5,
+                scale: 1.0, 
                 backgroundColor: '#0a0e1a',
                 useCORS: true,
                 logging: false,
@@ -897,13 +906,15 @@ async function downloadRankingInstagram() {
             });
 
             if (page === 0 && downloadContainer) {
-                downloadContainer.innerHTML = '';
+                const prog = document.getElementById('generation-progress');
+                if (prog) prog.style.display = 'none';
             }
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85); // Compressão ligeiramente maior
             const fileName = `ranking-${category.id}-${state.viewMode}-pg${page + 1}.jpg`;
 
             if (downloadContainer) {
+                // If progress element still exists (because another page is starting next), push images below it or replace content logically
                 const wrapper = document.createElement('div');
                 wrapper.style.display = 'flex';
                 wrapper.style.flexDirection = 'column';
@@ -937,7 +948,7 @@ async function downloadRankingInstagram() {
                 wrapper.appendChild(btn);
                 downloadContainer.appendChild(wrapper);
                 
-                showToast(`Imagem ${page + 1} de ${pagesCount} processada! ✅`, 'success');
+                showToast(`Imagem ${page + 1} processada! ✅`, 'success');
             } else {
                 // Fallback process
                 const link = document.createElement('a');
@@ -951,15 +962,25 @@ async function downloadRankingInstagram() {
 
         } catch (error) {
             console.error('Error generating image:', error);
-            showToast('Erro ao gerar a imagem no seu dispositivo 😢', 'error');
-            alert('Erro ao exportar: ' + error.message);
+            showToast(`Erro ao gerar a imagem ${page + 1} 😢`, 'error');
+            alert('Erro ao exportar parte ' + (page + 1) + ': ' + error.message);
         } finally {
             document.body.removeChild(container);
         }
 
-        // Add a small delay between downloads if multiple pages
+        // Delay para liberar memória (Garbage Collector do Mobile)
         if (page < pagesCount - 1) {
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 1200));
+        } else {
+            // Fim do loop
+            if (downloadContainer) {
+                const finalMsg = document.createElement('div');
+                finalMsg.style.color = '#10b981';
+                finalMsg.style.fontWeight = 'bold';
+                finalMsg.style.marginTop = '1rem';
+                finalMsg.innerHTML = '✨ Imagens concluídas! Pronto para salvar. ✨';
+                downloadContainer.appendChild(finalMsg);
+            }
         }
     }
 }
